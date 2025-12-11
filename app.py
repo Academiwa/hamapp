@@ -5,7 +5,7 @@ from datetime import datetime
 from PIL import Image
 
 # --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "gamu" #見てんじゃねえぞ！編集するなよ。
+ADMIN_PASSWORD = "gamu" # 見てんじゃねえぞ！編集するなよ。
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
 
@@ -99,6 +99,16 @@ with st.sidebar:
 st.title("🐹 ハムスター観察日記 by miwa")
 
 
+# =======================================================
+# 📢 【新規追加】全体お知らせ欄 (すべてのユーザーに表示されます)
+# =======================================================
+st.divider()
+st.header("📢 全体お知らせ")
+st.info("このアプリはmiwaさんのハムスター観察日記です。日記の閲覧はどなたでも可能です。日記の作成・編集・削除を行うには、左側のサイドバーで管理者認証を行ってください。")
+st.divider()
+# =======================================================
+
+
 # 1. 入力フォーム (新規作成/編集)
 edit_record = None
 if st.session_state.edit_id is not None:
@@ -113,8 +123,8 @@ if st.session_state.edit_id is not None:
 if st.session_state.authenticated:
     
     with st.container():
-        # 【お知らせ欄の表示】
-        st.info("💡 管理者モードが有効です。日記の作成、編集、削除が可能です。")
+        # 管理者向けステータス通知 (認証が成功したことの確認用)
+        st.success("✅ **管理者モード**：日記の作成・編集が可能です。")
         
         # タイトルを動的に変更
         if edit_record is not None:
@@ -183,6 +193,7 @@ if st.session_state.authenticated:
 
             st.rerun() 
 else:
+    # 認証されていない場合は、日記作成フォームの代わりにメッセージを表示
     st.info("日記の新規作成・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 
