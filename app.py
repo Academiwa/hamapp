@@ -7,7 +7,7 @@ from PIL import Image
 ADMIN_PASSWORD = "gamu" 
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv" 
+NOTICE_FILE = "notices.csv"
 
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
@@ -31,15 +31,12 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# 🚨 CSS: サイズ調整CSSを削除し、ブラウザのデフォルトサイズに戻す
 st.markdown(
     """
     <style>
     footer {visibility: hidden;}
 
-    /* h2, h3のサイズ調整CSSを削除 */
-    
-    body, p, div, span, h1, h4, textarea {
+    body, p, div, span, h1, h2, h3, h4, textarea {
         word-break: break-word;        
         word-wrap: break-word;         
         overflow-wrap: break-word;     
@@ -111,10 +108,8 @@ with st.sidebar:
             else:
                 st.error("パスワードが違います。")
 
-# タイトルを3行に分割 (h2, h3, caption)
-st.header("【速達】ハムスターの")
-st.subheader("がむちゃん日記")
-st.caption("by miwa")
+st.title("【速達】ハムスターのがむちゃん日記")
+st.subheader("by miwa")
 st.markdown("---")
 
 st.header("管理人掲示板")
@@ -192,7 +187,7 @@ if st.session_state.edit_id is not None:
 if st.session_state.authenticated:
     
     with st.container():
-        st.success("✅ 管理者モード：日記の作成・編集が可能です。")
+        st.success("✅ **管理者モード**：日記の作成・編集が可能です。")
         
         if edit_record is not None:
             st.subheader("✏️ 日記を編集する")
@@ -208,7 +203,7 @@ if st.session_state.authenticated:
         if edit_record is None:
             photo = st.file_uploader("写真を追加 (任意)", type=['jpg', 'png', 'jpeg'])
         else:
-            st.markdown(f"💡 編集モードでは、写真の変更はできません。")
+            st.markdown(f"**💡 編集モードでは、写真の変更はできません。**")
             photo = None 
 
         save_button_text = "変更を保存する" if edit_record is not None else "日記を保存する"
