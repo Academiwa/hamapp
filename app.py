@@ -24,7 +24,7 @@ if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=["日付", "内容", "画像パス"])
     df.to_csv(DATA_FILE, index=False)
 
-if not os.path.exists(NOTICE_FILE): # 👈 お知らせCSVの初期化
+if not os.path.exists(NOTICE_FILE): #お知らせCSVの初期化
     df_notice = pd.DataFrame(columns=["日付", "お知らせ内容"])
     df_notice.to_csv(NOTICE_FILE, index=False)
 
@@ -118,13 +118,13 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("🐹 ハムスター観察日記 by miwa")
+st.title("■ハムスター観察日記 by miwa")
 
 
 # =======================================================
 # 📢 【新規追加】全体お知らせ欄 (管理機能付き)
 # =======================================================
-st.header("📢 全体お知らせ")
+st.header("管理人掲示板")
 
 # 編集モードの場合、既存のデータを取得
 edit_notice = None
@@ -326,3 +326,4 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
