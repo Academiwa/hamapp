@@ -112,7 +112,6 @@ st.title("【速達】天才ハムスターのガムちゃん日記")
 st.subheader("by miwa")
 st.markdown("---")
 
-st.header("管理人掲示板")
 
 edit_notice = None
 if st.session_state.edit_id is not None:
@@ -148,7 +147,7 @@ else:
     st.info("お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 st.markdown("---")
-st.subheader("お知らせ一覧")
+st.subheader("管理人らくがき")
 
 df_notice_display = load_notice_data()
 
@@ -287,6 +286,7 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
 
 
 
