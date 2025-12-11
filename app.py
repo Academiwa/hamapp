@@ -4,13 +4,13 @@ import os
 from datetime import datetime
 from PIL import Image
 
-# --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "gamu" # ※公開後、誰も知らないパスワードに変更してください。
+# --- 設定 ---
+ADMIN_PASSWORD = "gamu"
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv" # お知らせ用の新しいファイル
+NOTICE_FILE = "notices.csv"
 
-# --- 状態管理の初期化 ---
+# --- 状態管理 ---
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'edit_id' not in st.session_state:
@@ -28,26 +28,30 @@ if not os.path.exists(NOTICE_FILE):
     df_notice = pd.DataFrame(columns=["日付", "お知らせ内容"])
     df_notice.to_csv(NOTICE_FILE, index=False)
 
-# --- ページ設定の追加（フッター非表示を安全に設定）---
+# --- ページ設定 ---
 st.set_page_config(
     page_title="ハムスター観察日記",
     layout="wide",
     initial_sidebar_state="expanded" 
 )
 
-# 🚨 【スマホ最適化CSS】white-space: nowrap を削除し、自然な折り返しを優先
+# --- CSS (タイトルサイズ縮小とスマホ最適化) ---
 st.markdown(
     """
     <style>
-    /* 画面下部の「Made with Streamlit」フッターを非表示 */
     footer {visibility: hidden;}
 
-    /* スマホ対応：テキストは適切な位置で折り返す設定 */
-    body, p, div, span, h1, h2, h3, h4, textarea {
-        word-break: break-word;        /* 日本語の適切な改行を有効にする */
-        word-wrap: break-word;         /* 長い単語やURLを途中で区切る */
-        overflow-wrap: break-word;     /* Safari, Chrome向け設定 */
-        line-height: 1.6;              /* 行の高さを調整し、可読性を向上 */
+    /* 🚨 タイトル(h1)のサイズを小さくする */
+    h1 {
+        font-size: 24px !important; 
+        margin-top: 0px; 
+    }
+
+    body, p, div, span, h2, h3, h4, textarea {
+        word-break: break-word;        
+        word-wrap: break-word;         
+        overflow-wrap: break-word;     
+        line-height: 1.6;              
     }
     </style>
     """,
@@ -126,14 +130,13 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-# 🚨 【修正】タイトルを分割して横スクロールを解消
 st.title("【速達】ハムスターのがむちゃん日記")
 st.subheader("by miwa")
-st.markdown("---") # 視覚的に分離
+st.markdown("---")
 
 
 # =======================================================
-# 📢 【全体お知らせ欄】 (管理機能付き)
+# 📢 全体お知らせ欄 (管理機能付き)
 # =======================================================
 st.header("管理人掲示板")
 
@@ -145,7 +148,6 @@ if st.session_state.edit_id is not None:
         if not records.empty:
             edit_notice = records.iloc[0]
 
-# --- 認証済みの場合のみ、お知らせ作成・編集フォームを表示 ---
 if st.session_state.authenticated:
     
     with st.expander(f"⚙️ お知らせ作成/編集 {'(編集中)' if edit_notice is not None else ''}"):
@@ -153,7 +155,7 @@ if st.session_state.authenticated:
         default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
         default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['お知らせ内容']) else "新しいお知らせの内容をここに記載..."
 
-        notice_date = st.date_input("お知らせ日付", default_notice_content, key="notice_date")
+        notice_date = st.date_input("お知らせ日付", default_notice_date, key="notice_date")
         notice_content = st.text_area("お知らせ内容", default_notice_content, height=100, key="notice_content")
 
         save_notice_button_text = "変更を保存する" if edit_notice is not None else "お知らせを投稿する"
@@ -174,7 +176,6 @@ else:
 st.markdown("---")
 st.subheader("お知らせ一覧")
 
-# --- 全ユーザー向けのお知らせ一覧表示 ---
 df_notice_display = load_notice_data()
 
 if not df_notice_display.empty:
@@ -212,12 +213,10 @@ if st.session_state.edit_id is not None:
         if not records.empty:
             edit_record = records.iloc[0]
 
-
-# --- 認証済みの場合のみ、作成・編集フォームを表示 ---
 if st.session_state.authenticated:
     
     with st.container():
-        st.success("✅ **管理者モード**：日記の作成・編集が可能です。")
+        st.success("✅ 管理者モード：日記の作成・編集が可能です。")
         
         if edit_record is not None:
             st.subheader("✏️ 日記を編集する")
@@ -233,7 +232,7 @@ if st.session_state.authenticated:
         if edit_record is None:
             photo = st.file_uploader("写真を追加 (任意)", type=['jpg', 'png', 'jpeg'])
         else:
-            st.markdown(f"**💡 編集モードでは、写真の変更はできません。**")
+            st.markdown(f"💡 編集モードでは、写真の変更はできません。")
             photo = None 
 
         save_button_text = "変更を保存する" if edit_record is not None else "日記を保存する"
@@ -241,7 +240,6 @@ if st.session_state.authenticated:
         if st.button(save_button_text, type="primary"):
             image_path = None
             
-            # 1. 新規投稿時の画像保存処理と回転修正
             if edit_record is None and photo is not None:
                 file_name = f"{date}_{photo.name}"
                 save_path = os.path.join(PHOTO_DIR, file_name)
@@ -270,12 +268,10 @@ if st.session_state.authenticated:
                     image_path = save_path
             
             if edit_record is not None:
-                # 2. 編集（上書き保存）処理
                 update_data(st.session_state.edit_id, date, content)
                 st.session_state.edit_id = None
                 st.success("変更を保存しました！✅")
             else:
-                # 3. 新規保存処理
                 new_data = pd.DataFrame({"日付": [date], "内容": [content], "画像パス": [image_path]})
                 new_data.to_csv(DATA_FILE, mode='a', header=False, index=False)
                 st.success("新規日記を保存しました！🐹")
@@ -305,7 +301,6 @@ if not df_display.empty:
             if pd.notna(row['画像パス']) and row['画像パス']:
                 st.image(row['画像パス'])
             
-            # 認証済みの場合のみボタンを表示
             if st.session_state.authenticated:
                 st.markdown("---")
                 
