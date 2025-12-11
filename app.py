@@ -31,16 +31,13 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# 🚨 CSS: h2とh3のサイズを統一し、by miwa (st.caption)は小さく保つ
+# 🚨 CSS: サイズ調整CSSを削除し、ブラウザのデフォルトサイズに戻す
 st.markdown(
     """
     <style>
     footer {visibility: hidden;}
 
-    h2, h3 {
-        font-size: 36px !important; 
-        margin-top: 0px; 
-    }
+    /* h2, h3のサイズ調整CSSを削除 */
     
     body, p, div, span, h1, h4, textarea {
         word-break: break-word;        
@@ -114,7 +111,7 @@ with st.sidebar:
             else:
                 st.error("パスワードが違います。")
 
-# タイトルを3行に分割 (h2, h3はCSSでサイズ統一、captionは小さいまま)
+# タイトルを3行に分割 (h2, h3, caption)
 st.header("【速達】ハムスターの")
 st.subheader("がむちゃん日記")
 st.caption("by miwa")
@@ -295,4 +292,3 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
-
