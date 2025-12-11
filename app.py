@@ -8,7 +8,7 @@ from PIL import Image
 ADMIN_PASSWORD = "gamu" # ※公開後、誰も知らないパスワードに変更してください。
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv" # 👈 お知らせ用の新しいファイル
+NOTICE_FILE = "notices.csv"
 
 # --- 状態管理の初期化 ---
 if 'authenticated' not in st.session_state:
@@ -24,7 +24,7 @@ if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=["日付", "内容", "画像パス"])
     df.to_csv(DATA_FILE, index=False)
 
-if not os.path.exists(NOTICE_FILE): #お知らせCSVの初期化
+if not os.path.exists(NOTICE_FILE): 
     df_notice = pd.DataFrame(columns=["日付", "お知らせ内容"])
     df_notice.to_csv(NOTICE_FILE, index=False)
 
@@ -35,11 +35,20 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
+# 🚨 スマホでの改行問題修正CSS
 st.markdown(
     """
     <style>
     /* 画面下部の「Made with Streamlit」フッターを非表示 */
     footer {visibility: hidden;}
+
+    /* スマホ対応：日本語の禁則処理と、適切な単語の折り返しを設定 */
+    body, p, div, span, h1, h2, h3, h4, textarea {
+        word-break: break-word;        /* 日本語の適切な改行を有効にする */
+        word-wrap: break-word;         /* 長い単語やURLを途中で区切る */
+        overflow-wrap: break-word;     /* Safari, Chrome向け設定 */
+        line-height: 1.6;              /* 行の高さを調整し、可読性を向上 */
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -48,7 +57,6 @@ st.markdown(
 
 # --- 共通関数：データ操作 ---
 
-# データを読み込む関数 (IDを振るために使用)
 def load_data():
     if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
         df = pd.read_csv(DATA_FILE)
@@ -70,7 +78,7 @@ def update_data(edit_id, new_date, new_content):
     current_df.drop(columns=['id']).to_csv(DATA_FILE, index=False)
 
 
-# --- 共通関数：お知らせデータ操作 (新規追加) ---
+# --- 共通関数：お知らせデータ操作 ---
 
 def load_notice_data():
     if os.path.exists(NOTICE_FILE) and os.path.getsize(NOTICE_FILE) > 0:
@@ -118,17 +126,16 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("【速達】ハムスターのがむちゃん日記")
+# 🐹 メインタイトルを統一
+st.title("🐹 【速達】ハムスターのがむちゃん日記 by miwa")
 
 
 # =======================================================
-# 📢 【新規追加】全体お知らせ欄 (管理機能付き)
+# 📢 【全体お知らせ欄】 (管理機能付き)
 # =======================================================
-st.header("by miwa")
+st.header("■ 管理人掲示板") # 掲示板としてサブヘッダーに変更
 
-# 編集モードの場合、既存のデータを取得
 edit_notice = None
-# お知らせ編集IDが設定されているかチェック
 if st.session_state.edit_id is not None:
     all_notice_data = load_notice_data()
     if not all_notice_data.empty:
@@ -139,7 +146,6 @@ if st.session_state.edit_id is not None:
 # --- 認証済みの場合のみ、お知らせ作成・編集フォームを表示 ---
 if st.session_state.authenticated:
     
-    # お知らせフォームはExpander内に格納
     with st.expander(f"⚙️ お知らせ作成/編集 {'(編集中)' if edit_notice is not None else ''}"):
         
         default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
@@ -152,12 +158,10 @@ if st.session_state.authenticated:
 
         if st.button(save_notice_button_text, type="primary", key="save_notice"):
             if edit_notice is not None:
-                # 編集処理
                 update_notice(st.session_state.edit_id, notice_date, notice_content)
                 st.session_state.edit_id = None
                 st.success("お知らせを変更しました！")
             else:
-                # 新規投稿処理
                 new_notice_data = pd.DataFrame({"日付": [notice_date], "お知らせ内容": [notice_content]})
                 new_notice_data.to_csv(NOTICE_FILE, mode='a', header=False, index=False)
                 st.success("新しいお知らせを投稿しました！")
@@ -166,20 +170,18 @@ else:
     st.info("お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 st.markdown("---")
-st.subheader("■管理人掲示板")
+st.subheader("📰 お知らせ一覧")
 
 # --- 全ユーザー向けのお知らせ一覧表示 ---
 df_notice_display = load_notice_data()
 
 if not df_notice_display.empty:
-    # 日付の新しい順にソート (最も新しいものが上に来る)
     df_notice_display = df_notice_display.sort_values(by="日付", ascending=False)
     
     for index, row in df_notice_display.iterrows():
         st.write(f"**{row['日付']}**")
         st.markdown(f"> {row['お知らせ内容']}")
         
-        # 認証済みの場合のみ編集・削除ボタンを表示
         if st.session_state.authenticated:
             col_a, col_b, col_c = st.columns([0.1, 0.1, 0.8])
             
@@ -201,10 +203,8 @@ else:
 
 # 1. 入力フォーム (新規作成/編集)
 edit_record = None
-# 日記編集IDが設定されているかチェック
 if st.session_state.edit_id is not None:
     all_data = load_data()
-    # 既存の日記編集処理
     if not all_data.empty:
         records = all_data[all_data['id'] == st.session_state.edit_id]
         if not records.empty:
@@ -215,30 +215,25 @@ if st.session_state.edit_id is not None:
 if st.session_state.authenticated:
     
     with st.container():
-        # 管理者向けステータス通知 (認証が成功したことの確認用)
         st.success("✅ **管理者モード**：日記の作成・編集が可能です。")
         
-        # タイトルを動的に変更
         if edit_record is not None:
             st.subheader("✏️ 日記を編集する")
         else:
             st.subheader("📝 新しい日記を書く")
         
-        # フォームの初期値を設定
         default_date = edit_record['日付'] if edit_record is not None else datetime.now()
         default_content = edit_record['内容'] if edit_record is not None and pd.notna(edit_record['内容']) else "今日の様子をここに書く..."
 
         date = st.date_input("日付", default_date)
         content = st.text_area("今日の様子", default_content, height=150)
         
-        # ※編集時の画像更新は複雑なため、新規投稿時のみ有効
         if edit_record is None:
             photo = st.file_uploader("写真を追加 (任意)", type=['jpg', 'png', 'jpeg'])
         else:
             st.markdown(f"**💡 編集モードでは、写真の変更はできません。**")
             photo = None 
 
-        # 保存ボタンのテキスト
         save_button_text = "変更を保存する" if edit_record is not None else "日記を保存する"
 
         if st.button(save_button_text, type="primary"):
@@ -326,9 +321,3 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
-
-
-
-
-
-
