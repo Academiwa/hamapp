@@ -108,7 +108,7 @@ with st.sidebar:
             else:
                 st.error("パスワードが違います。")
 
-st.title("【速達】天才ハムスター,がむちゃん日記")
+st.title("【速達】天才ハムスターのがむちゃんダイアリー")
 st.subheader("by miwa")
 st.markdown("---")
 
@@ -287,5 +287,6 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
 
 
