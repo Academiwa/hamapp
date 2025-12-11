@@ -5,12 +5,11 @@ from datetime import datetime
 from PIL import Image
 
 # --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "gamu"#おい！見てんじゃねえぞ！編集だけはするなよ。
+ADMIN_PASSWORD = "gamu" #見てんじゃねえぞ！編集するなよ。
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
 
 # --- 状態管理の初期化 ---
-# 認証状態、編集対象IDを保持
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'edit_id' not in st.session_state:
@@ -24,20 +23,19 @@ if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=["日付", "内容", "画像パス"])
     df.to_csv(DATA_FILE, index=False)
 
-# --- ページ設定の追加（フッター非表示）---
+# --- ページ設定の追加（フッター非表示を安全に設定）---
 st.set_page_config(
     page_title="ハムスター観察日記",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" # サイドバーをデフォルトで開く設定
 )
 
-# JavaScriptを使ってフッターを非表示にする
+# 🚨 修正済みCSS: フッターのみを非表示にする
 st.markdown(
     """
     <style>
-    #MainMenu {visibility: hidden;}
+    /* 画面下部の「Made with Streamlit」フッターを非表示 */
     footer {visibility: hidden;}
-    header {visibility: hidden;}
     </style>
     """,
     unsafe_allow_html=True
@@ -50,19 +48,18 @@ st.markdown(
 def load_data():
     if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
         df = pd.read_csv(DATA_FILE)
-        # データが空でなければIDを振る
         if not df.empty:
             df['id'] = df.index
             return df
     return pd.DataFrame(columns=["日付", "内容", "画像パス", "id"])
 
-#指定されたIDの行を削除し、CSVを上書きする関数
+# 指定されたIDの行を削除し、CSVを上書きする関数
 def delete_row(row_id):
     current_df = load_data()
     df_after_delete = current_df[current_df['id'] != row_id]
     df_after_delete.drop(columns=['id'], errors='ignore').to_csv(DATA_FILE, index=False)
 
-#データの更新関数 (編集)
+# データの更新関数 (編集)
 def update_data(edit_id, new_date, new_content):
     current_df = load_data()
     
@@ -74,7 +71,7 @@ def update_data(edit_id, new_date, new_content):
     current_df.drop(columns=['id']).to_csv(DATA_FILE, index=False)
 
 
-#--- 画面構成：サイドバーの認証 ---
+# --- 画面構成：サイドバーの認証 ---
 
 with st.sidebar:
     st.header("管理者認証")
@@ -83,7 +80,7 @@ with st.sidebar:
         st.success("編集モード：認証済み")
         if st.button("ログアウト", key="logout_btn"):
             st.session_state.authenticated = False
-            st.session_state.edit_id = None # 編集モードも解除
+            st.session_state.edit_id = None
             st.rerun()
     else:
         st.info("日記の作成・編集にはパスワードが必要です。")
@@ -103,7 +100,6 @@ st.title("🐹 ハムスター観察日記 by miwa")
 
 
 # 1. 入力フォーム (新規作成/編集)
-# 編集モードの場合、既存のデータを取得
 edit_record = None
 if st.session_state.edit_id is not None:
     all_data = load_data()
@@ -117,9 +113,8 @@ if st.session_state.edit_id is not None:
 if st.session_state.authenticated:
     
     with st.container():
-        # === 【お知らせ欄の追加】 ===
+        # 【お知らせ欄の表示】
         st.info("💡 管理者モードが有効です。日記の作成、編集、削除が可能です。")
-        # ================================
         
         # タイトルを動的に変更
         if edit_record is not None:
@@ -153,7 +148,6 @@ if st.session_state.authenticated:
                 save_path = os.path.join(PHOTO_DIR, file_name)
                 
                 try:
-                    # Pillowで開き、回転を修正
                     img = Image.open(photo)
                     if hasattr(img, '_getexif'):
                         exif = img._getexif()
@@ -171,7 +165,6 @@ if st.session_state.authenticated:
                     image_path = save_path
                 
                 except Exception as e:
-                    # エラー時はそのまま保存
                     st.warning(f"画像回転情報の修正中にエラーが発生しました: {e}")
                     with open(save_path, "wb") as f:
                         f.write(photo.getbuffer())
@@ -180,7 +173,7 @@ if st.session_state.authenticated:
             if edit_record is not None:
                 # 2. 編集（上書き保存）処理
                 update_data(st.session_state.edit_id, date, content)
-                st.session_state.edit_id = None # 編集モードを解除
+                st.session_state.edit_id = None
                 st.success("変更を保存しました！✅")
             else:
                 # 3. 新規保存処理
@@ -203,33 +196,27 @@ if not df_display.empty:
     df_display = df_display.sort_values(by="日付", ascending=False)
     
     for index, row in df_display.iterrows():
-        # Expanderのタイトル設定
         expander_title = f"🗓️ {row['日付']} の日記"
         if pd.notna(row['内容']) and row['内容']:
              expander_title += f" - {row['内容'][:20]}..."
 
         with st.expander(expander_title):
-            # 1. 日記の内容表示
             st.write(row['内容'])
             
-            # 2. 画像があれば表示
             if pd.notna(row['画像パス']) and row['画像パス']:
                 st.image(row['画像パス'])
             
-            # 3. 認証済みの場合のみボタンを表示
+            # 認証済みの場合のみボタンを表示
             if st.session_state.authenticated:
                 st.markdown("---")
                 
-                # 削除ボタンと編集ボタンを配置
                 col1, col2, col3 = st.columns([0.6, 0.2, 0.2]) 
                 
-                # 編集ボタン
                 with col2:
                     if st.button("編集", key=f"edit_{row['id']}"):
                         st.session_state.edit_id = row['id']
                         st.rerun() 
                         
-                # 削除ボタン
                 with col3:
                     if st.button("削除", key=f"delete_{row['id']}", type="primary"):
                         delete_row(row['id'])
