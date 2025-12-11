@@ -35,26 +35,19 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# 🚨 【改行問題最終対策CSS】タイトル・見出しの不自然な改行を禁止する
+# 🚨 【スマホ最適化CSS】white-space: nowrap を削除し、自然な折り返しを優先
 st.markdown(
     """
     <style>
     /* 画面下部の「Made with Streamlit」フッターを非表示 */
     footer {visibility: hidden;}
 
-    /* スマホ対応：テキスト全体は折り返す設定 */
-    body, p, div, span, h4, textarea {
-        word-break: break-word;        
-        word-wrap: break-word;         
-        overflow-wrap: break-word;     
-        line-height: 1.6;              
-    }
-    
-    /* タイトルと見出し(h1, h2, h3)に対して、単語の途中での改行を禁止 */
-    h1, h2, h3 {
-        white-space: nowrap !important; /* 強制的に改行を禁止 */
-        overflow-x: auto;               /* はみ出た場合は横スクロール可能 */
-        display: block;                 
+    /* スマホ対応：テキストは適切な位置で折り返す設定 */
+    body, p, div, span, h1, h2, h3, h4, textarea {
+        word-break: break-word;        /* 日本語の適切な改行を有効にする */
+        word-wrap: break-word;         /* 長い単語やURLを途中で区切る */
+        overflow-wrap: break-word;     /* Safari, Chrome向け設定 */
+        line-height: 1.6;              /* 行の高さを調整し、可読性を向上 */
     }
     </style>
     """,
@@ -133,7 +126,10 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("【速達】ハムスターのがむちゃん日記 by miwa")
+# 🚨 【修正】タイトルを分割して横スクロールを解消
+st.title("【速達】ハムスターのがむちゃん日記")
+st.subheader("by miwa")
+st.markdown("---") # 視覚的に分離
 
 
 # =======================================================
@@ -157,7 +153,7 @@ if st.session_state.authenticated:
         default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
         default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['お知らせ内容']) else "新しいお知らせの内容をここに記載..."
 
-        notice_date = st.date_input("お知らせ日付", default_notice_date, key="notice_date")
+        notice_date = st.date_input("お知らせ日付", default_notice_content, key="notice_date")
         notice_content = st.text_area("お知らせ内容", default_notice_content, height=100, key="notice_content")
 
         save_notice_button_text = "変更を保存する" if edit_notice is not None else "お知らせを投稿する"
