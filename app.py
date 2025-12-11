@@ -130,7 +130,7 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("【速達】ハムスターのがむちゃん日記")
+st.title("【速達】ハムスターの がむちゃん日記")
 st.subheader("by miwa")
 st.markdown("---")
 
@@ -318,5 +318,6 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
 
 
