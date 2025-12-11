@@ -118,7 +118,7 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("■ハムスターのがむちゃん日記")
+st.title("【速達】ハムスターのがむちゃん日記")
 
 
 # =======================================================
@@ -163,7 +163,7 @@ if st.session_state.authenticated:
                 st.success("新しいお知らせを投稿しました！")
             st.rerun() 
 else:
-    st.info("📢 お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
+    st.info("お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 st.markdown("---")
 st.subheader("■管理人掲示板")
@@ -326,6 +326,7 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
 
 
 
