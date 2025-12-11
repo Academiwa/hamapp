@@ -5,9 +5,10 @@ from datetime import datetime
 from PIL import Image
 
 # --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "gamu" # 見てんじゃねえぞ！編集するなよ。
+ADMIN_PASSWORD = "gamu" # ※公開後、誰も知らないパスワードに変更してください。
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
+NOTICE_FILE = "notices.csv" # 👈 お知らせ用の新しいファイル
 
 # --- 状態管理の初期化 ---
 if 'authenticated' not in st.session_state:
@@ -23,14 +24,17 @@ if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=["日付", "内容", "画像パス"])
     df.to_csv(DATA_FILE, index=False)
 
+if not os.path.exists(NOTICE_FILE): # 👈 お知らせCSVの初期化
+    df_notice = pd.DataFrame(columns=["日付", "お知らせ内容"])
+    df_notice.to_csv(NOTICE_FILE, index=False)
+
 # --- ページ設定の追加（フッター非表示を安全に設定）---
 st.set_page_config(
     page_title="ハムスター観察日記",
     layout="wide",
-    initial_sidebar_state="expanded" # サイドバーをデフォルトで開く設定
+    initial_sidebar_state="expanded" 
 )
 
-# 🚨 修正済みCSS: フッターのみを非表示にする
 st.markdown(
     """
     <style>
@@ -53,22 +57,40 @@ def load_data():
             return df
     return pd.DataFrame(columns=["日付", "内容", "画像パス", "id"])
 
-# 指定されたIDの行を削除し、CSVを上書きする関数
 def delete_row(row_id):
     current_df = load_data()
     df_after_delete = current_df[current_df['id'] != row_id]
     df_after_delete.drop(columns=['id'], errors='ignore').to_csv(DATA_FILE, index=False)
 
-# データの更新関数 (編集)
 def update_data(edit_id, new_date, new_content):
     current_df = load_data()
-    
     idx = current_df[current_df['id'] == edit_id].index
-    
     current_df.loc[idx, '日付'] = new_date
     current_df.loc[idx, '内容'] = new_content
-    
     current_df.drop(columns=['id']).to_csv(DATA_FILE, index=False)
+
+
+# --- 共通関数：お知らせデータ操作 (新規追加) ---
+
+def load_notice_data():
+    if os.path.exists(NOTICE_FILE) and os.path.getsize(NOTICE_FILE) > 0:
+        df = pd.read_csv(NOTICE_FILE)
+        if not df.empty:
+            df['id'] = df.index
+            return df
+    return pd.DataFrame(columns=["日付", "お知らせ内容", "id"])
+
+def delete_notice(row_id):
+    current_df = load_notice_data()
+    df_after_delete = current_df[current_df['id'] != row_id]
+    df_after_delete.drop(columns=['id'], errors='ignore').to_csv(NOTICE_FILE, index=False)
+
+def update_notice(edit_id, new_date, new_content):
+    current_df = load_notice_data()
+    idx = current_df[current_df['id'] == edit_id].index
+    current_df.loc[idx, '日付'] = new_date
+    current_df.loc[idx, 'お知らせ内容'] = new_content
+    current_df.drop(columns=['id']).to_csv(NOTICE_FILE, index=False)
 
 
 # --- 画面構成：サイドバーの認証 ---
@@ -100,19 +122,89 @@ st.title("🐹 ハムスター観察日記 by miwa")
 
 
 # =======================================================
-# 📢 【新規追加】全体お知らせ欄 (すべてのユーザーに表示されます)
+# 📢 【新規追加】全体お知らせ欄 (管理機能付き)
 # =======================================================
-st.divider()
 st.header("📢 全体お知らせ")
-st.info("このアプリはmiwaさんのハムスター観察日記です。日記の閲覧はどなたでも可能です。日記の作成・編集・削除を行うには、左側のサイドバーで管理者認証を行ってください。")
-st.divider()
+
+# 編集モードの場合、既存のデータを取得
+edit_notice = None
+# お知らせ編集IDが設定されているかチェック
+if st.session_state.edit_id is not None:
+    all_notice_data = load_notice_data()
+    if not all_notice_data.empty:
+        records = all_notice_data[all_notice_data['id'] == st.session_state.edit_id]
+        if not records.empty:
+            edit_notice = records.iloc[0]
+
+# --- 認証済みの場合のみ、お知らせ作成・編集フォームを表示 ---
+if st.session_state.authenticated:
+    
+    # お知らせフォームはExpander内に格納
+    with st.expander(f"⚙️ お知らせ作成/編集 {'(編集中)' if edit_notice is not None else ''}"):
+        
+        default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
+        default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['お知らせ内容']) else "新しいお知らせの内容をここに記載..."
+
+        notice_date = st.date_input("お知らせ日付", default_notice_date, key="notice_date")
+        notice_content = st.text_area("お知らせ内容", default_notice_content, height=100, key="notice_content")
+
+        save_notice_button_text = "変更を保存する" if edit_notice is not None else "お知らせを投稿する"
+
+        if st.button(save_notice_button_text, type="primary", key="save_notice"):
+            if edit_notice is not None:
+                # 編集処理
+                update_notice(st.session_state.edit_id, notice_date, notice_content)
+                st.session_state.edit_id = None
+                st.success("お知らせを変更しました！")
+            else:
+                # 新規投稿処理
+                new_notice_data = pd.DataFrame({"日付": [notice_date], "お知らせ内容": [notice_content]})
+                new_notice_data.to_csv(NOTICE_FILE, mode='a', header=False, index=False)
+                st.success("新しいお知らせを投稿しました！")
+            st.rerun() 
+else:
+    st.info("📢 お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
+
+st.markdown("---")
+st.subheader("📰 お知らせ一覧")
+
+# --- 全ユーザー向けのお知らせ一覧表示 ---
+df_notice_display = load_notice_data()
+
+if not df_notice_display.empty:
+    # 日付の新しい順にソート (最も新しいものが上に来る)
+    df_notice_display = df_notice_display.sort_values(by="日付", ascending=False)
+    
+    for index, row in df_notice_display.iterrows():
+        st.write(f"**{row['日付']}**")
+        st.markdown(f"> {row['お知らせ内容']}")
+        
+        # 認証済みの場合のみ編集・削除ボタンを表示
+        if st.session_state.authenticated:
+            col_a, col_b, col_c = st.columns([0.1, 0.1, 0.8])
+            
+            with col_a:
+                if st.button("編集", key=f"edit_notice_{row['id']}"):
+                    st.session_state.edit_id = row['id']
+                    st.rerun()
+            
+            with col_b:
+                if st.button("削除", key=f"delete_notice_{row['id']}", type="primary"):
+                    delete_notice(row['id'])
+                    st.toast(f"{row['日付']}のお知らせを削除しました。")
+                    st.rerun()
+        st.markdown("---")
+else:
+    st.info("現在、お知らせはありません。")
 # =======================================================
 
 
 # 1. 入力フォーム (新規作成/編集)
 edit_record = None
+# 日記編集IDが設定されているかチェック
 if st.session_state.edit_id is not None:
     all_data = load_data()
+    # 既存の日記編集処理
     if not all_data.empty:
         records = all_data[all_data['id'] == st.session_state.edit_id]
         if not records.empty:
@@ -193,7 +285,6 @@ if st.session_state.authenticated:
 
             st.rerun() 
 else:
-    # 認証されていない場合は、日記作成フォームの代わりにメッセージを表示
     st.info("日記の新規作成・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 
