@@ -132,7 +132,6 @@ with st.sidebar:
 # --- メインコンテンツ ---
 st.title("【速達】天才ハムスターのガムちゃん日記")
 st.subheader("by miwa")
-st.markdown("---")
 
 # --- お知らせ編集エリア (管理者のみ) ---
 edit_notice = None
@@ -343,3 +342,4 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
