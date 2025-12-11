@@ -43,7 +43,7 @@ st.markdown(
 
     /* 🚨 タイトル(h1)のサイズを小さくする */
     h1 {
-        font-size: 24px !important; 
+        font-size: 58px !important; 
         margin-top: 0px; 
     }
 
@@ -318,3 +318,4 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
