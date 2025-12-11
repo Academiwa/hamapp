@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 # --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "hamu-edit" # 👈 ここを任意の秘密のパスワードに変更してください
+ADMIN_PASSWORD = "gamu"
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
 
@@ -198,3 +198,4 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
