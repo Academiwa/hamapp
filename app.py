@@ -5,10 +5,10 @@ from datetime import datetime
 from PIL import Image
 
 # --- 設定: パスワードとファイルの場所 ---
-ADMIN_PASSWORD = "gamu" # ※公開後、誰も知らないパスワードに変更してください。
+ADMIN_PASSWORD = "gamu" 
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv"
+NOTICE_FILE = "notices.csv" 
 
 # --- 状態管理の初期化 ---
 if 'authenticated' not in st.session_state:
@@ -35,7 +35,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# 🚨 スマホでの改行問題修正CSS
+# スマホでの改行問題修正CSS
 st.markdown(
     """
     <style>
@@ -126,14 +126,14 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-# 🐹 メインタイトルを統一
-st.title("🐹 【速達】ハムスターのがむちゃん日記 by miwa")
+# 🐹 メインタイトルを統一 (絵文字削除)
+st.title("【速達】ハムスターのがむちゃん日記 by miwa")
 
 
 # =======================================================
 # 📢 【全体お知らせ欄】 (管理機能付き)
 # =======================================================
-st.header("■ 管理人掲示板") # 掲示板としてサブヘッダーに変更
+st.header("管理人掲示板")
 
 edit_notice = None
 if st.session_state.edit_id is not None:
@@ -151,7 +151,7 @@ if st.session_state.authenticated:
         default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
         default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['お知らせ内容']) else "新しいお知らせの内容をここに記載..."
 
-        notice_date = st.date_input("お知らせ日付", default_notice_date, key="notice_date")
+        notice_date = st.date_input("お知らせ日付", default_notice_content, key="notice_date")
         notice_content = st.text_area("お知らせ内容", default_notice_content, height=100, key="notice_content")
 
         save_notice_button_text = "変更を保存する" if edit_notice is not None else "お知らせを投稿する"
@@ -170,7 +170,7 @@ else:
     st.info("お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
 
 st.markdown("---")
-st.subheader("📰 お知らせ一覧")
+st.subheader("お知らせ一覧")
 
 # --- 全ユーザー向けのお知らせ一覧表示 ---
 df_notice_display = load_notice_data()
