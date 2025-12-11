@@ -4,19 +4,16 @@ import os
 from datetime import datetime
 from PIL import Image
 
-# --- 設定 ---
-ADMIN_PASSWORD = "gamu"
+ADMIN_PASSWORD = "gamu" 
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv"
+NOTICE_FILE = "notices.csv" 
 
-# --- 状態管理 ---
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'edit_id' not in st.session_state:
     st.session_state.edit_id = None
 
-# フォルダとCSVファイルの初期化
 if not os.path.exists(PHOTO_DIR):
     os.makedirs(PHOTO_DIR)
 
@@ -28,26 +25,27 @@ if not os.path.exists(NOTICE_FILE):
     df_notice = pd.DataFrame(columns=["日付", "お知らせ内容"])
     df_notice.to_csv(NOTICE_FILE, index=False)
 
-# --- ページ設定 ---
 st.set_page_config(
     page_title="ハムスター観察日記",
     layout="wide",
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS (タイトルサイズ縮小とスマホ最適化) ---
 st.markdown(
     """
     <style>
     footer {visibility: hidden;}
 
-    /* 🚨 タイトル(h1)のサイズを小さくする */
-    h1 {
-        font-size: 36px !important; 
+    /* タイトル(h1)を一番大きく、h2, h3も適切なサイズに設定 */
+    h2 {
+        font-size: 28px !important; 
         margin-top: 0px; 
     }
-
-    body, p, div, span, h2, h3, h4, textarea {
+    h3 {
+        font-size: 24px !important; 
+    }
+    
+    body, p, div, span, h1, h4, textarea {
         word-break: break-word;        
         word-wrap: break-word;         
         overflow-wrap: break-word;     
@@ -57,9 +55,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
-# --- 共通関数：データ操作 ---
 
 def load_data():
     if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
@@ -81,9 +76,6 @@ def update_data(edit_id, new_date, new_content):
     current_df.loc[idx, '内容'] = new_content
     current_df.drop(columns=['id']).to_csv(DATA_FILE, index=False)
 
-
-# --- 共通関数：お知らせデータ操作 ---
-
 def load_notice_data():
     if os.path.exists(NOTICE_FILE) and os.path.getsize(NOTICE_FILE) > 0:
         df = pd.read_csv(NOTICE_FILE)
@@ -103,9 +95,6 @@ def update_notice(edit_id, new_date, new_content):
     current_df.loc[idx, '日付'] = new_date
     current_df.loc[idx, 'お知らせ内容'] = new_content
     current_df.drop(columns=['id']).to_csv(NOTICE_FILE, index=False)
-
-
-# --- 画面構成：サイドバーの認証 ---
 
 with st.sidebar:
     st.header("管理者認証")
@@ -128,16 +117,12 @@ with st.sidebar:
             else:
                 st.error("パスワードが違います。")
 
-
-# --- 画面構成：メインパネル ---
-st.title("【速達】ハムスターの がむちゃん日記")
-st.subheader("by miwa")
+# 🚨 タイトルを3行に分割して表示
+st.header("【速達】ハムスターの")
+st.subheader("がむちゃん日記")
+st.caption("by miwa")
 st.markdown("---")
 
-
-# =======================================================
-# 📢 全体お知らせ欄 (管理機能付き)
-# =======================================================
 st.header("管理人掲示板")
 
 edit_notice = None
@@ -201,10 +186,7 @@ if not df_notice_display.empty:
         st.markdown("---")
 else:
     st.info("現在、お知らせはありません。")
-# =======================================================
 
-
-# 1. 入力フォーム (新規作成/編集)
 edit_record = None
 if st.session_state.edit_id is not None:
     all_data = load_data()
@@ -280,8 +262,6 @@ if st.session_state.authenticated:
 else:
     st.info("日記の新規作成・編集・削除を行うには、左側のサイドバーで認証してください。")
 
-
-# 2. 過去の日記を表示
 st.divider()
 st.subheader("これまでの日記")
 
@@ -318,6 +298,3 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
-
-
-
