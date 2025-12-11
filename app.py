@@ -7,7 +7,7 @@ from PIL import Image
 ADMIN_PASSWORD = "gamu" 
 PHOTO_DIR = "photos"
 DATA_FILE = "diary.csv"
-NOTICE_FILE = "notices.csv"
+NOTICE_FILE = "notices.csv" 
 
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
@@ -31,12 +31,20 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
+# CSS: タイトルを強制1行表示にする設定
 st.markdown(
     """
     <style>
     footer {visibility: hidden;}
 
-    body, p, div, span, h1, h2, h3, h4, textarea {
+    /* タイトルとサブタイトルを強制的に1行表示 */
+    h2, h3 {
+        white-space: nowrap; 
+        overflow-x: auto;    
+        font-size: 24px !important; 
+    }
+    
+    body, p, div, span, h1, h4, textarea {
         word-break: break-word;        
         word-wrap: break-word;         
         overflow-wrap: break-word;     
@@ -108,10 +116,11 @@ with st.sidebar:
             else:
                 st.error("パスワードが違います。")
 
-st.title("【速達】天才ハムスターのガムちゃん日記")
-st.subheader("by miwa")
-st.markdown("---")
+# メインタイトルとキャプション（区切り線削除）
+st.header("【速達】ハムスターのがむちゃん日記 by miwa")
+# st.markdown("---") # 🚨 削除
 
+st.header("管理人掲示板")
 
 edit_notice = None
 if st.session_state.edit_id is not None:
@@ -126,7 +135,7 @@ if st.session_state.authenticated:
     with st.expander(f"⚙️ お知らせ作成/編集 {'(編集中)' if edit_notice is not None else ''}"):
         
         default_notice_date = edit_notice['日付'] if edit_notice is not None else datetime.now()
-        default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['お知らせ内容']) else "新しいお知らせの内容をここに記載..."
+        default_notice_content = edit_notice['お知らせ内容'] if edit_notice is not None and pd.notna(edit_notice['のお知らせ内容']) else "新しいお知らせの内容をここに記載..."
 
         notice_date = st.date_input("お知らせ日付", default_notice_date, key="notice_date")
         notice_content = st.text_area("お知らせ内容", default_notice_content, height=100, key="notice_content")
@@ -143,8 +152,11 @@ if st.session_state.authenticated:
                 new_notice_data.to_csv(NOTICE_FILE, mode='a', header=False, index=False)
                 st.success("新しいお知らせを投稿しました！")
             st.rerun() 
-st.markdown("---")
-st.subheader("管理人らくがき")
+else:
+    st.info("お知らせの投稿・編集・削除を行うには、左側のサイドバーで認証してください。")
+
+# st.markdown("---") # 🚨 削除
+st.subheader("お知らせ一覧")
 
 df_notice_display = load_notice_data()
 
@@ -183,7 +195,7 @@ if st.session_state.edit_id is not None:
 if st.session_state.authenticated:
     
     with st.container():
-        st.success("✅ **管理者モード**：日記の作成・編集が可能です。")
+        st.success("✅ 管理者モード：日記の作成・編集が可能です。")
         
         if edit_record is not None:
             st.subheader("✏️ 日記を編集する")
@@ -199,7 +211,7 @@ if st.session_state.authenticated:
         if edit_record is None:
             photo = st.file_uploader("写真を追加 (任意)", type=['jpg', 'png', 'jpeg'])
         else:
-            st.markdown(f"**💡 編集モードでは、写真の変更はできません。**")
+            st.markdown(f"💡 編集モードでは、写真の変更はできません。")
             photo = None 
 
         save_button_text = "変更を保存する" if edit_record is not None else "日記を保存する"
@@ -283,10 +295,3 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
-
-
-
-
-
-
-
