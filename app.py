@@ -38,7 +38,7 @@ st.markdown(
 
     /* タイトル(h1)を一番大きく、h2, h3も適切なサイズに設定 */
     h2 {
-        font-size: 28px !important; 
+        font-size: 36px !important; 
         margin-top: 0px; 
     }
     h3 {
@@ -298,3 +298,4 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
