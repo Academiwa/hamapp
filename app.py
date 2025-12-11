@@ -85,7 +85,7 @@ with st.sidebar:
 
 
 # --- 画面構成：メインパネル ---
-st.title("🐹 ハムスター観察日記")
+st.title("🐹 ハムスター観察日記 by miwa")
 
 
 # 1. 入力フォーム (新規作成/編集)
@@ -198,4 +198,5 @@ if not df_display.empty:
                         st.rerun()
 else:
     st.info("まだ日記がありません。")
+
 
